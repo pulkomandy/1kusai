@@ -1,0 +1,48 @@
+Idea: draw hokusai's wave in 1K
+===============================
+
+Use SVG as source (vastly simplified).
+Paths are actually a set of cubic Bézier curves
+
+Drawing a quadratic Bézier:
+It is defined by a parametric equation:
+
+x = A(1-t)³+3B(1-t)²t+3C(1-t)t²+Dt³
+(likewise for Y)
+
+Where A,B,C,D are the X-coords of start, c1, c2 and end points, respectively.
+
+We can rewrite this as:
+Z + t(Y + t(X + Wt))
+
+With:
+Z = A
+Y = 3B
+X = 3C - 6B
+W = D - 3C + 3B - A
+
+In this form we need only 3 mulitplications and 3 additions to compute the curve value at any step t
+
+To draw the curve, we evaluate this at various points (values of t) and draw straight lines between those.
+
+Problem: this applies for t in the range 0..1, so we have to use floating point maths.
+Fixed point will not do if we have only 16 bit math. Let's see if we can use the firmware floating point routines in a compact enough code.
+
+Note that A/Z needs to be stored only for the first point in a polybézier. The next curve just uses the cursor position at the end of drawing the previous curve (that is the value of the equation when t=1).
+
+System vectors of interest
+==========================
+
+BD52: FILL at the current cursor position
+A = pen to use
+HL = pointer to work buffer
+DE = buffer size
+
+/!\ Stops when it hits a pixel matching the pen color so the polygon needs to be closed?
+
+BBC0: Move cursor
+BBF6: Draw line from cursor to given pos (and move cursor)
+
+DE = X coord, HL = Y coord. Remember that we are in a 640x400 space, with 0,0 at the bottom left.
+
+It may be interesting to send some values to the AY and try to generate sounds of the sea. We'll see if there are a few bytes available.
