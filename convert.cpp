@@ -37,8 +37,8 @@ int main(void)
 		{
 			for (int i = 0; i < path->npts; i++)
 			{
-				uint16_t X = path->pts[i * 2];
-				uint16_t Y = path->pts[i * 2 + 1];
+				int16_t X = path->pts[i * 2];
+				int16_t Y = path->pts[i * 2 + 1];
 
 				printf("%d, %d, ", X, Y);
 			}
