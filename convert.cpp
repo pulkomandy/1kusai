@@ -12,59 +12,39 @@ int main(void)
 
 	for (NSVGshape * shape = image->shapes; shape != NULL; shape = shape->next)
 	{
-		for (NSVGpath * path = shape->paths; path != NULL; path = path->next)
-		{
-			for (int i = 0; i < path->npts * 2; i++)
-			{
-				uint16_t coord = path->pts[i];
-				fprintf(stderr, "%d, ", coord);
-				if (i & 1)
-					write(1, &coord, 1);
-				else {
-					coord = htons(coord);
-					write(1, &coord, 2);
-				}
-			}
-		}
-
 		uint8_t color;
 		switch(shape->fill.color)
 		{
-			case 0xFFFFFFFF: // White
-				color = 0x80;
-				break;
-			case 0xffcdb982: // cyan?
-				color = 0x81;
-				break;
-			case 0xffcccccc: // grey
-				color = 0x82;
-				break;
-			case 0xff3b2714:
-				color = 0x83;
-				break;
-			case 0xff201f23:
-				color = 0x84;
-				break;
-			case 0xff2d1414:
-				color = 0x85;
-				break;
+			case 0xFF800000: // dark blue
 			case 0xff6b502d:
-				color = 0x86;
+			case 0xff201f23:
+				color = 1;
+				break;
+			case 0xffffffff: // white
+				color = 2;
 				break;
 			case 0xff5ac2e6:
-				color = 0x87;
-				break;
-			case 0xff337c64:
-				color = 0x88;
-				break;
-			case 0xff987350:
-				color = 0x89;
+			case 0xff337c64: // dark yellow?
+				color = 3;
 				break;
 			default:
-				fprintf(stderr, "Unknown color %x\n", shape->fill.color);
+				fprintf(stderr, "\nUnknown color %x\n", shape->fill.color);
 		}
 
-		write(1, &color, 1);
+		printf("{ %d, {", color);
+
+		for (NSVGpath * path = shape->paths; path != NULL; path = path->next)
+		{
+			for (int i = 0; i < path->npts; i++)
+			{
+				uint16_t X = path->pts[i * 2];
+				uint16_t Y = path->pts[i * 2 + 1];
+
+				printf("%d, %d, ", X, Y);
+			}
+		}
+
+		printf("}},\n");
 	}
 
 	nsvgDelete(image);
