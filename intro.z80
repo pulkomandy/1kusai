@@ -1,0 +1,51 @@
+; 1Kusai
+; 1K intro by PulkoMandy/Shinra
+; Graphics by Hokusai (public domain)
+
+; ---------------------------------
+; Useful system vectors
+; ---------------------------------
+
+SYS_CLS  equ $BBDB
+SYS_PEN  equ $BBDE
+	; A = new pen
+SYS_PAPER equ $BBE4
+SYS_PRINT equ $BBFC
+	; A = char to print (at cursor)
+
+SYS_MOVE equ $BBC0
+SYS_GETC equ $BBC6
+SYS_LINE equ $BBF6
+	; DE = X
+	; HL = Y
+
+SYS_FILL equ $BD52
+	; A = pen number
+	; HL = work buffer
+	; DE = work buffer size
+
+SYS_I2REAL equ $BD64
+	; HL = int to convert
+	; A = bit 7 set if HL is negative
+	; DE = ptr to output (5 bytes)
+
+SYS_REAL2I equ $BD6A
+	; HL = ptr to value
+	; out: HL = converted value
+
+SYS_ADD equ $BD7C
+	; (HL) += (DE)
+
+SYS_MUL equ $BD85
+	; (HL) *= (DE)
+
+
+; Set the color palette
+
+; Read polygon
+; 1) Color
+
+; 2) Initial point (READ + MOVE)
+; 3) More points (COMPUTE + LINE) (loop 24 times? or more?)
+; 4) More béziers (COMPUTE + LINE)
+; 5) Fill
