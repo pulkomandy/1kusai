@@ -7,8 +7,11 @@
 ; ---------------------------------
 
 SYS_CLS  equ $BBDB
+
 SYS_PEN  equ $BBDE
 	; A = new pen
+	; AF is corrupt, and all other registers are preserved
+
 SYS_PAPER equ $BBE4
 SYS_PRINT equ $BBFC
 	; A = char to print (at cursor)
@@ -18,6 +21,11 @@ SYS_GETC equ $BBC6
 SYS_LINE equ $BBF6
 	; DE = X
 	; HL = Y
+
+SYS_INK equ $BC32
+	; A = PEN
+	; BC = INK (x2 because flashing)
+	; AF, BC, DE and HL are corrupt, and all others are preserved
 
 SYS_FILL equ $BD52
 	; A = pen number
@@ -39,13 +47,63 @@ SYS_ADD equ $BD7C
 SYS_MUL equ $BD85
 	; (HL) *= (DE)
 
+	ORG $8000
 
 ; Set the color palette
+	XOR A
+	LD BC,$0A0A ; CYAN
+	CALL SYS_INK
+
+	LD A,1
+	LD BC,$0101 ; BLUE
+	CALL SYS_INK
+
+	LD A,2
+	LD BC,$1A1A ; WHITE
+	CALL SYS_INK
+
+	LD A,3
+	LD BC,$0F0F ; ORANGE
+	CALL SYS_INK
 
 ; Read polygon
 ; 1) Color
+	LD IX,DATA
+	LD A,(IX+0)
+
+	CALL SYS_PEN
 
 ; 2) Initial point (READ + MOVE)
+	LD E,(IX+1)
+	LD D,(IX+2)
+
+	LD L,(IX+3)
+	LD H,(IX+4)
+
+	CALL SYS_MOVE
+
+	LD BC,5
+	ADD IX,BC
+
+; ---- TEST ----
+; Draw a line just to make sure
+	LD E,(IX+0)
+	LD D,(IX+1)
+	LD L,(IX+2)
+	LD H,(IX+3)
+
+	CALL SYS_LINE
+
 ; 3) More points (COMPUTE + LINE) (loop 24 times? or more?)
 ; 4) More béziers (COMPUTE + LINE)
 ; 5) Fill
+
+
+	JR $
+
+DATA
+	DEFB 1 ; pen
+	DEFW 158, 141 ; origin
+	DEFW 125, 99  ; 1st control point (FIXME replace with W X Y)
+	DEFW 155, 72
+	DEFW 165, 55
