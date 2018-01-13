@@ -47,8 +47,9 @@ SYS_ADD equ $BD7C
 SYS_MUL equ $BD85
 	; (HL) *= (DE)
 
-	ORG $8000
+	GLOBAL _start
 
+_start
 ; Set the color palette
 	XOR A
 	LD BC,$0A0A ; CYAN
@@ -98,7 +99,7 @@ SYS_MUL equ $BD85
 ; 4) More béziers (COMPUTE + LINE)
 ; 5) Fill
 
-
+	DI
 	JR $
 
 DATA
