@@ -25,17 +25,19 @@ for shape = 1,#a do
 	c = a[shape][1]
 	p = a[shape][2]
 
+	O = 0
+
 	base = 1
-	Ax = p[base + 0]
-	Ay = p[base + 1]
+	Ax = 2 * p[base + 0]
+	Ay = 400 - 2 * p[base + 1]
 
 	for base = 1,#p-6,6 do
-		Bx = p[base + 2]
-		By = p[base + 3]
-		Cx = p[base + 4]
-		Cy = p[base + 5]
-		Dx = p[base + 6]
-		Dy = p[base + 7]
+		Bx = 2 * p[base + 2]
+		By = 400 - 2 * p[base + 3]
+		Cx = 2 * p[base + 4]
+		Cy = 400 - 2 * p[base + 5]
+		Dx = 2 * p[base + 6]
+		Dy = 400 - 2 * p[base + 7]
 
 		Yx = 3 * (Bx - Ax)
 		Yy = 3 * (By - Ay)
@@ -43,13 +45,17 @@ for shape = 1,#a do
 		Xy = 3 * (Cy + Ay) - 6 * By
 		Wx = Dx - 3 * Cx + 3 * Bx - Ax
 		Wy = Dy - 3 * Cy + 3 * By - Ay
+		Zx = Ax
+		Zy = Ay
+
+		print(c, Zx + O, Zy + O, Wx + O, Wy + O, Xx + O, Xy + O, Yx + O, Yy + O)
 
 		for T = 0,240 do
 			t = T / 240
 			-- x = Ax * (1 - t)^3 + 3 * Bx * (1 - t) ^ 2 * t + 3 * Cx * (1 - t) * t ^ 2 + Dx * t ^ 3
 			-- y = Ay * (1 - t)^3 + 3 * By * (1 - t) ^ 2 * t + 3 * Cy * (1 - t) * t ^ 2 + Dy * t ^ 3
-			x = Ax + t * (Yx + t * (Xx + t * Wx))
-			y = Ay + t * (Yy + t * (Xy + t * Wy))
+			x = Zx + t * (Yx + t * (Xx + t * Wx))
+			y = Zy + t * (Yy + t * (Xy + t * Wy))
 			putpicturepixel(x, y, c)
 		end
 
