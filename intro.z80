@@ -34,6 +34,11 @@ SYS_FILL equ $BD52
 	; HL = work buffer
 	; DE = work buffer size
 
+; -----------------------------------------------------------------------------
+
+SYS_REQ equ $BD61
+	; (HL) = (DE)
+
 SYS_I2REAL equ $BD64
 	; HL = int to convert (in range 0..65535)
 	; A = bit 7 set if HL is negative
@@ -49,6 +54,9 @@ SYS_ADD equ $BD7C
 
 SYS_MUL equ $BD85
 	; (HL) *= (DE)
+
+SYS_DIV equ $BD88
+	; (HL) /= (DE)
 
 
 _start
@@ -88,6 +96,7 @@ _start
 
 	CALL SYS_MOVE
 
+; Convert initial point to REAL
 	POP HL
 	LD DE,Ay
 	CALL I2REAL
@@ -96,32 +105,189 @@ _start
 	LD DE,Ax
 	CALL I2REAL
 
+; Advance to next point
 	LD BC,5
 	ADD IX,BC
 
-; ---- TEST ----
-; Draw a line just to make sure
-	LD E,(IX+0)
-	LD D,(IX+1)
+	LD L,(IX+0)
+	LD H,(IX+1)
+	LD DE,Yx
+	CALL I2REAL
+
 	LD L,(IX+2)
 	LD H,(IX+3)
+	LD DE,Yy
+	CALL I2REAL
 
+	LD L,(IX+4)
+	LD H,(IX+5)
+	LD DE,Xx
+	CALL I2REAL
+
+	LD L,(IX+6)
+	LD H,(IX+7)
+	LD DE,Xy
+	CALL I2REAL
+
+	LD L,(IX+8)
+	LD H,(IX+9)
+	LD DE,Wx
+	CALL I2REAL
+
+	LD L,(IX+10)
+	LD H,(IX+11)
+	LD DE,Wy
+	CALL I2REAL
+
+	LD HL,0
+	PUSH HL
+
+tloop:
+	POP HL
+	INC L
+	JP Z,endtloop
+	PUSH HL
+
+	LD DE,t
+	CALL I2REAL
+
+	; Let t be in the range 0..1
+
+	; u = 255
+	LD H,0
+	LD L,255
+	LD DE,u
+	CALL I2REAL
+
+	; t /= u
+	LD HL,t
+	LD DE,u
+	CALL SYS_DIV
+
+	; Now perform the boring math
+	; u = t
+	LD HL,u
+	LD DE,t
+	CALL SYS_REQ
+
+	; u *= w
+	;LD HL,u
+	LD DE,Wx
+	CALL SYS_MUL
+
+	; u += x
+	;LD HL,u
+	LD DE,Xx
+	CALL SYS_ADD
+
+	; u *= t
+	;LD HL,u
+	LD DE,t
+	CALL SYS_MUL
+
+	; u += y
+	;LD HL,u
+	LD DE,Yx
+	CALL SYS_ADD
+
+	; u *= t
+	;LD HL,u
+	LD DE,t
+	CALL SYS_MUL
+
+	; u += z <- (This can be done in int-space)
+	;LD HL,u
+	LD DE,Ax
+	CALL SYS_MUL
+
+	; R2INT
+	;LD HL,u
+	CALL REAL2I
+
+	; Store X coord
+	PUSH HL
+
+	; Do the same for Y coord
+	; -----------------------
+
+	; (u = t)
+	LD HL,u
+	LD DE,t
+	CALL SYS_REQ
+
+	; u *= w
+	;LD HL,u
+	LD DE,Wy
+	CALL SYS_MUL
+
+	; u += x
+	;LD HL,u
+	LD DE,Xy
+	CALL SYS_ADD
+
+	; u *= t
+	;LD HL,u
+	LD DE,t
+	CALL SYS_MUL
+
+	; u += y
+	;LD HL,u
+	LD DE,Yy
+	CALL SYS_ADD
+
+	; u *= t
+	;LD HL,u
+	LD DE,t
+	CALL SYS_MUL
+
+	; u += z <- (This can be done in int-space)
+	;LD HL,u
+	LD DE,Ay
+	CALL SYS_MUL
+
+	; R2INT
+	;LD HL,u
+	CALL REAL2I
+
+	; HL holds the Y coord
+
+	; Draw line to computed point
+	POP DE ; DE holds the X coord
 	CALL SYS_LINE
+
+	CALL $BB06
+
+	JP tloop
+
+endtloop:
 
 ; 3) More points (COMPUTE + LINE) (loop 24 times? or more?)
 ; 4) More béziers (COMPUTE + LINE)
 ; 5) Fill
-
 	DI
 	JR $
 
 I2REAL
 	LD A,H ; Copy the bit in A
 	PUSH AF
-	OR $7F ; Remove the bit from H
+	AND $7F ; Remove the bit from H
 	LD H,A
 	POP AF
 	JP SYS_I2REAL
+
+REAL2I
+	CALL SYS_REAL2I
+	RET P
+
+	; Let's do a "NEG HL" if it should be negative
+	xor a
+	sub l
+	ld l,a
+	sbc a,a
+	sub h
+	ld h,a
+
+	RET
 	
 
 DATA
