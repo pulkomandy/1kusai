@@ -38,7 +38,8 @@ $(NAME).zip:: $(NAME).dsk $(NAME).nfo
 	createSnapshot $@ \
 		-i template.sna \
 		-l $^ -1 \
-		-s Z80_PC 32768
+		-s Z80_PC 32768 \
+		-f 49152 16384 0
 
 memory.bin memory.C4 memory.C5 memory.C6 memory.C7: $(NAME).sna
 	$(call BECHO,"Extracting memory data from ","$@")
