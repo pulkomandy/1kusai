@@ -58,6 +58,65 @@ SYS_MUL equ $BD85
 SYS_DIV equ $BD88
 	; (HL) /= (DE)
 
+; Lets wrap all this float math stuff into nice macros
+	macro FMUL
+		LD DE,\1
+		CALL SYS_MUL
+	endmacro
+
+	macro FDIV
+		LD DE,\1
+		CALL SYS_DIV
+	endmacro
+
+	macro FADD
+		LD DE,\1
+		CALL SYS_ADD
+	endmacro
+
+	macro FLOAD
+		LD HL,\1
+		LD DE,\2
+		call SYS_REQ
+	endmacro
+
+; stuff...
+
+    macro   print_hexa_16
+        LD  A,H
+        print_hexa_h
+        LD  A,H
+        print_hexa_l
+        LD  A,L
+        print_hexa_h
+        LD  A,L
+        print_hexa_l
+    endmacro
+
+    macro   print_hexa
+    LD  \1,A
+    print_hexa_h
+    LD  A,\1
+    print_hexa_l
+    endmacro
+
+    macro   print_hexa_h
+    RRA
+    RRA
+    RRA
+    RRA
+    print_hexa_l
+    endmacro
+
+    macro print_hexa_l
+    AND 0x0F
+    ADD A,0x90
+    DAA
+    ADC A,0x40
+    DAA
+    CALL    $BD31
+    endmacro
+
 
 _start
 ; Set the color palette
@@ -161,44 +220,16 @@ tloop:
 
 	; t /= u
 	LD HL,t
-	LD DE,u
-	CALL SYS_DIV
+	FDIV u
 
-	; Now perform the boring math
-	; u = t
-	LD HL,u
-	LD DE,t
-	CALL SYS_REQ
+	FLOAD u,t
 
-	; u *= w
-	;LD HL,u
-	LD DE,Wx
-	CALL SYS_MUL
-
-	; u += x
-	;LD HL,u
-	LD DE,Xx
-	CALL SYS_ADD
-
-	; u *= t
-	;LD HL,u
-	LD DE,t
-	CALL SYS_MUL
-
-	; u += y
-	;LD HL,u
-	LD DE,Yx
-	CALL SYS_ADD
-
-	; u *= t
-	;LD HL,u
-	LD DE,t
-	CALL SYS_MUL
-
-	; u += z <- (This can be done in int-space)
-	;LD HL,u
-	LD DE,Ax
-	CALL SYS_MUL
+	FMUL Wx
+	FADD Xx
+	FMUL t
+	FADD Yx
+	FMUL t
+	FADD Ax
 
 	; R2INT
 	;LD HL,u
@@ -206,56 +237,36 @@ tloop:
 
 	; Store X coord
 	PUSH HL
+	print_hexa_16
+	ld a,','
+	call $BD31
 
 	; Do the same for Y coord
 	; -----------------------
 
-	; (u = t)
-	LD HL,u
-	LD DE,t
-	CALL SYS_REQ
+	FLOAD u,t
 
-	; u *= w
-	;LD HL,u
-	LD DE,Wy
-	CALL SYS_MUL
-
-	; u += x
-	;LD HL,u
-	LD DE,Xy
-	CALL SYS_ADD
-
-	; u *= t
-	;LD HL,u
-	LD DE,t
-	CALL SYS_MUL
-
-	; u += y
-	;LD HL,u
-	LD DE,Yy
-	CALL SYS_ADD
-
-	; u *= t
-	;LD HL,u
-	LD DE,t
-	CALL SYS_MUL
-
-	; u += z <- (This can be done in int-space)
-	;LD HL,u
-	LD DE,Ay
-	CALL SYS_MUL
+	FMUL Wy
+	FADD Xy
+	FMUL t
+	FADD Yy
+	FMUL t
+	FADD Ay
 
 	; R2INT
 	;LD HL,u
 	CALL REAL2I
 
 	; HL holds the Y coord
+	print_hexa_16
+	ld a,' '
+	call $BD31
 
 	; Draw line to computed point
 	POP DE ; DE holds the X coord
 	CALL SYS_LINE
 
-	CALL $BB06
+	;CALL $BB06
 
 	JP tloop
 

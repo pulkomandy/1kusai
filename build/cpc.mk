@@ -16,7 +16,7 @@ vpath %.z80 src
 # Run the emulator
 emu: $(NAME).sna
 	$(call BECHO,"Running emu...")
-	cd "/Git/8bit/cpc/ace/run" && ./ACE SNAPSHOT=$(realpath $^)
+	cd "/Git/8bit/cpc/ace/run" && ./ACE SNAPSHOT=$(realpath $^) PF="print.log" EP
 
 release: $(NAME).zip
 
