@@ -26,7 +26,7 @@ $(NAME).zip:: $(NAME).dsk $(NAME).nfo
 %.dsk:
 	$(call BECHO,"Putting files in","$@")
 	cpcfs $@ f
-	for i in $^;do cpcfs $@ p $$i ;done;
+	for i in $^;do cpcfs $@ p -b -e $$i,0x4000,0x4000 ;done;
 
 # Build the CDT-File
 ../%.cdt:
