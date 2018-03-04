@@ -121,6 +121,16 @@ SYS_DIV equ $BD88
 
 
 _start
+
+	; PSG init. This will come in useful later.
+	LD A,7 ; mixer
+	LD C,0x2F ; chan A,C
+	;LD C,0x3D
+	CALL &BD34
+	LD A,9 ; volume B
+	LD C,0xF
+	CALL &BD34
+
 ; Set the color palette
 	XOR A
 	LD BC,$0A0A ; CYAN
@@ -268,6 +278,12 @@ tloop:
 	POP DE ; DE holds the X coord
 	CALL SYS_LINE
 
+	; There were some bytes left, so let's play some music?
+
+	LD A,6
+	LD C,L
+	CALL &BD34
+
 	JP tloop
 
 endtloop:
@@ -320,11 +336,12 @@ endtloop:
 	JP NZ, nextpoly
 
 finished:
-	LD A,'X'
-	CALL $BB5A
 
-; 4) More béziers (COMPUTE + LINE)
-; 5) Fill
+	; Turn off sound
+	LD A,7
+	LD C,0x3F
+	CALL &BD34
+
 	DI
 	JR $
 
@@ -446,22 +463,32 @@ DATA
 
 ; PEOPLE IN RIGHT BOAT ----------------------------
 
-;	   2       554     160     12      -4      -12     18      -6      -12
-	DEFW 554,160
+	DEFW 562, 164
 	DEFB 2
-	DEFW 12,N|4,N|12,18,N|6,N|12
-;	   2       548     162     -12     -2      12      -12     6       12
-	DEFW N|12,N|2,12,N|12,6,12
+	DEFW 8,N|12,0,24,N|12,N|6
+	DEFW N|2,6,N|6,N|18,12,6
+	DEFW E|560,166
 
-	DEFW E|554,160
-
-;	   2       534     142     8       -12     0       24      -12     -6
-	DEFW 534, 142
+;	   2       554     160     12      -4      -12     18      -6      -12
+	DEFW 552,158
 	DEFB 2
 	DEFW 8,N|12,0,24,N|12,N|6
 ;	   2       530     148     -2      6       -6      -18     12      6
 	DEFW N|2,6,N|6,N|18,12,6
-	DEFW E|534,142
+
+	DEFW E|552,158
+
+	DEFW 540, 148
+	DEFB 2
+	DEFW 8,N|12,0,24,N|12,N|6
+	DEFW N|2,6,N|6,N|18,12,6
+	DEFW E|538,150
+
+	DEFW 530, 140
+	DEFB 2
+	DEFW 8,N|12,0,24,N|12,N|6
+	DEFW N|2,6,N|6,N|18,12,6
+	DEFW E|530,140
 
 ; Bottom boat
 
@@ -531,16 +558,14 @@ DATA
 
 	DEFW E|468, 22
 
-	DEFW 494,24
+	DEFW  486,   22
 	DEFB 2
-	DEFW 4, N|10,    6,   18, N|12,  0
-	DEFW 2,   28, N|24, N|48,   24, 12
+	DEFW N|34, N|28,  78, 30, N|42,    6
+	DEFW N| 2,    4, N|6,  0,    6, N|12
 
-	DEFW E|494,24
+	DEFW E|486, 22
 
-;	*/
 endofdata
-
 
 ; storage space (not included in binary)
 Ax	defs 5
